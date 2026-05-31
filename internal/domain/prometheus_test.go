@@ -22,9 +22,14 @@ func TestGenerateFingerprint(t *testing.T) {
 		"severity":  "critical",
 	}
 
-	fp1 := GenerateFingerprint(labels1)
-	fp2 := GenerateFingerprint(labels2)
-	fp3 := GenerateFingerprint(labels3)
+	// Use the new method on an Alert object
+	a1 := Alert{Labels: labels1, Source: "prometheus", Service: labels1["service"], Severity: labels1["severity"]}
+	a2 := Alert{Labels: labels2, Source: "prometheus", Service: labels2["service"], Severity: labels2["severity"]}
+	a3 := Alert{Labels: labels3, Source: "prometheus", Service: labels3["service"], Severity: labels3["severity"]}
+
+	fp1 := a1.GenerateFingerprint()
+	fp2 := a2.GenerateFingerprint()
+	fp3 := a3.GenerateFingerprint()
 
 	if fp1 == "" {
 		t.Fatal("fingerprint should not be empty")

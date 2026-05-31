@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"time"
 )
@@ -38,6 +40,36 @@ type Alert struct {
 	OccurrenceCount int               `json:"occurrence_count"`
 	CreatedAt       time.Time         `json:"created_at"`
 	UpdatedAt       time.Time         `json:"updated_at"`
+	Source          string            `json:"source"`
+}
+
+// GenerateFingerprint creates a deterministic hash of the alert based on stable fields.
+func (a *Alert) GenerateFingerprint() string {
+	h := sha256.New()
+	// Recommended fingerprint fields:
+	// source, alert name, service, environment, resource, severity
+	
+	// We use the "alertname" from labels if available, otherwise we might need a Name field.
+	// Looking at the Alert struct, it doesn't have a Name field, but Prometheus alerts 
+	// usually have an "alertname" label.
+	
+	alertName := a.Labels["alertname"]
+	
+	fields := []string{
+		a.Source,
+		alertName,
+		a.Service,
+		a.Environment,
+		a.Resource,
+		a.Severity,
+	}
+
+	for _, f := range fields {
+		h.Write([]byte(f))
+		h.Write([]byte("|")) // Separator to avoid collisions
+	}
+
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 type AlertEvent struct {

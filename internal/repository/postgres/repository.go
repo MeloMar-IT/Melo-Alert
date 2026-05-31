@@ -57,9 +57,9 @@ func (r *Repository) UpsertAlert(ctx context.Context, alert *domain.Alert) error
 	query := `
 		INSERT INTO alerts (
 			fingerprint, status, severity, environment, service, resource, team, 
-			summary, description, labels, annotations, starts_at, ends_at, last_seen, occurrence_count, updated_at
+			summary, description, labels, annotations, starts_at, ends_at, last_seen, occurrence_count, updated_at, source
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		ON CONFLICT (fingerprint) DO UPDATE SET
 			status = EXCLUDED.status,
 			severity = EXCLUDED.severity,
@@ -75,7 +75,8 @@ func (r *Repository) UpsertAlert(ctx context.Context, alert *domain.Alert) error
 			ends_at = EXCLUDED.ends_at,
 			last_seen = EXCLUDED.last_seen,
 			occurrence_count = alerts.occurrence_count + 1,
-			updated_at = EXCLUDED.updated_at
+			updated_at = EXCLUDED.updated_at,
+			source = EXCLUDED.source
 		RETURNING id, created_at, occurrence_count
 	`
 	err = r.pool.QueryRow(ctx, query,
@@ -95,6 +96,7 @@ func (r *Repository) UpsertAlert(ctx context.Context, alert *domain.Alert) error
 		alert.LastSeen,
 		alert.OccurrenceCount,
 		time.Now(),
+		alert.Source,
 	).Scan(&alert.ID, &alert.CreatedAt, &alert.OccurrenceCount)
 
 	if err != nil {

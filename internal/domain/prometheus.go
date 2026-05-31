@@ -1,10 +1,6 @@
 package domain
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
-	"sort"
 	"strings"
 	"time"
 )
@@ -51,6 +47,7 @@ func NormalizePrometheusAlert(pa PrometheusAlert) *Alert {
 	}
 
 	// Map labels to internal fields
+	alert.Source = "prometheus"
 	alert.Service = pa.Labels["service"]
 	alert.Severity = pa.Labels["severity"]
 	alert.Environment = pa.Labels["environment"]
@@ -61,7 +58,7 @@ func NormalizePrometheusAlert(pa PrometheusAlert) *Alert {
 	alert.Team = pa.Labels["team"]
 
 	// Generate fingerprint if not provided or to ensure consistency
-	alert.Fingerprint = GenerateFingerprint(pa.Labels)
+	alert.Fingerprint = alert.GenerateFingerprint()
 
 	return alert
 }
@@ -76,19 +73,4 @@ func MapPrometheusStatus(status string) AlertStatus {
 	default:
 		return AlertStatusFiring
 	}
-}
-
-// GenerateFingerprint creates a deterministic hash of the labels.
-func GenerateFingerprint(labels map[string]string) string {
-	keys := make([]string, 0, len(labels))
-	for k := range labels {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	h := sha256.New()
-	for _, k := range keys {
-		fmt.Fprintf(h, "%s:%s,", k, labels[k])
-	}
-	return hex.EncodeToString(h.Sum(nil))
 }

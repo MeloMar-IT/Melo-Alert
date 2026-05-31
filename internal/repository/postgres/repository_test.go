@@ -43,6 +43,7 @@ func TestRepository(t *testing.T) {
 		alert := &domain.Alert{
 			Fingerprint: "test-fingerprint",
 			Status:      domain.AlertStatusFiring,
+			Source:      "test",
 			Labels:      map[string]string{"alertname": "TestAlert"},
 			Annotations: map[string]string{"summary": "Test summary"},
 			StartsAt:    time.Now().Add(-10 * time.Minute),
@@ -80,6 +81,7 @@ func TestRepository(t *testing.T) {
 		alert := &domain.Alert{
 			Fingerprint: "event-test-fingerprint",
 			Status:      domain.AlertStatusFiring,
+			Source:      "test",
 			Labels:      map[string]string{"alertname": "EventTestAlert"},
 			StartsAt:    time.Now(),
 		}
