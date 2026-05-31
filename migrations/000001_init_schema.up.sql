@@ -1,0 +1,31 @@
+CREATE TABLE IF NOT EXISTS raw_events (
+    id BIGSERIAL PRIMARY KEY,
+    source TEXT NOT NULL,
+    payload JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS alerts (
+    id BIGSERIAL PRIMARY KEY,
+    fingerprint TEXT NOT NULL UNIQUE,
+    status TEXT NOT NULL,
+    labels JSONB NOT NULL DEFAULT '{}',
+    annotations JSONB NOT NULL DEFAULT '{}',
+    starts_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    ends_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_alerts_fingerprint ON alerts(fingerprint);
+
+CREATE TABLE IF NOT EXISTS alert_events (
+    id BIGSERIAL PRIMARY KEY,
+    alert_id BIGINT NOT NULL REFERENCES alerts(id) ON DELETE CASCADE,
+    status TEXT NOT NULL,
+    event_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    details TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_alert_events_alert_id ON alert_events(alert_id);
