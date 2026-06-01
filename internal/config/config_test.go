@@ -49,4 +49,43 @@ database:
 			t.Errorf("expected postgres://localhost:5432, got %s", cfg.Database.DSN)
 		}
 	})
+
+	t.Run("routing config", func(t *testing.T) {
+		yamlContent := `
+routing:
+  default_receiver: "default"
+  routes:
+    - receiver: "critical"
+      match:
+        severity: "critical"
+`
+		tmpFile, err := os.CreateTemp("", "config*.yaml")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.Remove(tmpFile.Name())
+
+		if _, err := tmpFile.Write([]byte(yamlContent)); err != nil {
+			t.Fatal(err)
+		}
+		tmpFile.Close()
+
+		cfg, err := Load(tmpFile.Name())
+		if err != nil {
+			t.Fatalf("failed to load config: %v", err)
+		}
+
+		if cfg.Routing.DefaultReceiver != "default" {
+			t.Errorf("expected default, got %s", cfg.Routing.DefaultReceiver)
+		}
+		if len(cfg.Routing.Routes) != 1 {
+			t.Fatalf("expected 1 route, got %d", len(cfg.Routing.Routes))
+		}
+		if cfg.Routing.Routes[0].Receiver != "critical" {
+			t.Errorf("expected critical, got %s", cfg.Routing.Routes[0].Receiver)
+		}
+		if cfg.Routing.Routes[0].Match["severity"] != "critical" {
+			t.Errorf("expected critical severity, got %s", cfg.Routing.Routes[0].Match["severity"])
+		}
+	})
 }

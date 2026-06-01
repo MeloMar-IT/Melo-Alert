@@ -8,6 +8,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"signalhub/internal/config"
 	"signalhub/internal/domain"
+	"signalhub/internal/notification/servicenow"
+	"signalhub/internal/notification/teams"
 	"signalhub/internal/server/handler"
 	"signalhub/internal/server/middleware"
 )
@@ -16,12 +18,21 @@ type Server struct {
 	httpServer *http.Server
 	logger     *slog.Logger
 	repo       domain.Repository
+	teams      *teams.Client
+	servicenow *servicenow.Client
 }
 
 func New(cfg *config.Config, logger *slog.Logger, repo domain.Repository) *Server {
 	mux := http.NewServeMux()
 
-	webhookHandler := handler.NewWebhookHandler(repo, logger)
+	teamsClient := teams.NewClient(cfg.Teams)
+	
+	var snClient *servicenow.Client
+	if cfg.ServiceNow.Enabled {
+		snClient = servicenow.NewClient(cfg.ServiceNow)
+	}
+
+	webhookHandler := handler.NewWebhookHandler(repo, logger, teamsClient, snClient)
 
 	// Public routes
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -60,8 +71,10 @@ func New(cfg *config.Config, logger *slog.Logger, repo domain.Repository) *Serve
 			ReadTimeout:  cfg.Server.ReadTimeout,
 			WriteTimeout: cfg.Server.WriteTimeout,
 		},
-		logger: logger,
-		repo:   repo,
+		logger:     logger,
+		repo:       repo,
+		teams:      teamsClient,
+		servicenow: snClient,
 	}
 }
 

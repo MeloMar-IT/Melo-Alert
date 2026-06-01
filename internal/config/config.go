@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"signalhub/internal/domain"
 	"gopkg.in/yaml.v3"
 )
 
@@ -12,7 +13,25 @@ type Config struct {
 	Server   ServerConfig   `yaml:"server"`
 	Database DatabaseConfig `yaml:"database"`
 	Auth     AuthConfig     `yaml:"auth"`
+	Routing  domain.RoutingConfig `yaml:"routing"`
+	Teams    TeamsConfig    `yaml:"teams"`
+	ServiceNow ServiceNowConfig `yaml:"servicenow"`
 	Logging  LoggingConfig  `yaml:"logging"`
+}
+
+type ServiceNowConfig struct {
+	Enabled      bool          `yaml:"enabled"`
+	InstanceURL  string        `yaml:"instance_url"`
+	User         string        `yaml:"user"`
+	Password     string        `yaml:"password"`
+	Timeout      time.Duration `yaml:"timeout"`
+	AssignmentGroup string     `yaml:"assignment_group"`
+}
+
+type TeamsConfig struct {
+	Enabled    bool          `yaml:"enabled"`
+	WebhookURL string        `yaml:"webhook_url"`
+	Timeout    time.Duration `yaml:"timeout"`
 }
 
 type ServerConfig struct {
@@ -40,6 +59,8 @@ func Load(path string) (*Config, error) {
 	cfg.Server.Address = ":8080"
 	cfg.Server.ReadTimeout = 5 * time.Second
 	cfg.Server.WriteTimeout = 10 * time.Second
+	cfg.Teams.Timeout = 10 * time.Second
+	cfg.ServiceNow.Timeout = 10 * time.Second
 	cfg.Logging.Level = "info"
 
 	if path != "" {

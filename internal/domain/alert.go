@@ -38,6 +38,8 @@ type Alert struct {
 	EndsAt          *time.Time        `json:"ends_at,omitempty"`
 	LastSeen        time.Time         `json:"last_seen"`
 	OccurrenceCount int               `json:"occurrence_count"`
+	ValidityState   string            `json:"validity_state"`
+	AISummary       string            `json:"ai_summary"`
 	CreatedAt       time.Time         `json:"created_at"`
 	UpdatedAt       time.Time         `json:"updated_at"`
 	Source          string            `json:"source"`

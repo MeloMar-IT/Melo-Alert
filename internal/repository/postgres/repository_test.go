@@ -105,6 +105,7 @@ func TestRepository(t *testing.T) {
 		if event.ID == 0 {
 			t.Error("expected event ID to be set")
 		}
+	})
 	t.Run("UpsertAlertDeduplication", func(t *testing.T) {
 		fp := "dedup-test-fingerprint"
 		alert := &domain.Alert{
